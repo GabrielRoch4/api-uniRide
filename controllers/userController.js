@@ -6,9 +6,24 @@ export const getAllUsers = (_, res) => {
     db.query(q, (err, data) => {
         if(err) return res.json(err);
 
+        if(data == "") return res.status(404).json("Não há usuários cadastrados!")
+
         return res.status(200).json(data);
     })
 };
+
+export const getByUserId = (req, res) => {
+    const q = 
+        "SELECT * FROM users WHERE `id` = ?"
+
+    db.query(q, [req.params.id], (err, data) => {
+        if(err) return res.json(err)
+        
+        if(data == "") return res.status(404).json("Usuário não encontrado!")
+
+        return res.status(200).json(data)
+    })
+}
  
 export const createUser = (req, res) => {
     const q =
