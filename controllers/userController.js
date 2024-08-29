@@ -1,69 +1,61 @@
-import { db } from "../db.js";
+import { PrismaClient } from '@prisma/client';
 
-export const getAllUsers = (_, res) => {
-    const q = "SELECT * FROM users"
+const prisma = new PrismaClient();
 
-    db.query(q, (err, data) => {
-        if(err) return res.json(err);
-
-        if(data == "") return res.status(404).json("Não há usuários cadastrados!")
-
-        return res.status(200).json(data);
-    })
+export const getAllUsers = async (_, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    if (users.length === 0) return res.status(404).json("Não há usuários cadastrados!");
+    return res.status(200).json(users);
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
 };
 
-export const getByUserId = (req, res) => {
-    const q = 
-        "SELECT * FROM users WHERE `id` = ?"
+export const getByUserId = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.id },
+    });
+    if (!user) return res.status(404).json("Usuário não encontrado!");
+    return res.status(200).json(user);
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+};
 
-    db.query(q, [req.params.id], (err, data) => {
-        if(err) return res.json(err)
-        
-        if(data == "") return res.status(404).json("Usuário não encontrado!")
+export const createUser = async (req, res) => {
+  const { nome, email, cpf } = req.body;
+  try {
+    const newUser = await prisma.user.create({
+      data: { nome, email, cpf },
+    });
+    return res.status(201).json("Usuário criado com sucesso!");
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+};
 
-        return res.status(200).json(data)
-    })
-}
- 
-export const createUser = (req, res) => {
-    const q =
-        "INSERT INTO users(`nome`, `email`) VALUES(?)"
+export const updateUser = async (req, res) => {
+  const { nome, email, cpf } = req.body;
+  try {
+    await prisma.user.update({
+      where: { id: req.params.id },
+      data: { nome, email, cpf },
+    });
+    return res.status(200).json("Usuário atualizado com sucesso!");
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+};
 
-    const values = [
-        req.body.nome,
-        req.body.email
-    ]
-
-    db.query(q, [values], (err) => {
-        if(err) return res.json(err)
-
-        return res.status(201).json("Usuário criado com sucesso!")  
-    })   
-}
-
-export const updateUser  = (req, res) => {
-    const q = 
-        "UPDATE users SET `nome` = ?, `email` = ? WHERE `id` = ?"
-
-    const values = [
-        req.body.nome,
-        req.body.email
-    ]
-
-    db.query(q, [...values, req.params.id], (err) => {
-        if(err) return res.json(err)
-
-        return res.status(200).json("Usuário atualizado com sucesso!")
-    })
-}
-
-export const deleteUser = (req, res) => {
-    const q = 
-        "DELETE FROM users WHERE `id` = ?"
-
-    db.query(q, [req.params.id], (err) => {
-        if(err) return res.json(err)
-
-        return res.status(200).json("Usuário deletado com sucesso!")
-    })
-}
+export const deleteUser = async (req, res) => {
+  try {
+    await prisma.user.delete({
+      where: { id: req.params.id },
+    });
+    return res.status(200).json("Usuário deletado com sucesso!");
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+};
