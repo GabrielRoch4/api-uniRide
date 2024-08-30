@@ -32,6 +32,7 @@ model User {
   Complemento String
   Estado String
   Cidade String
+  Role String @default("user")
 
   @@map ("users")
 }

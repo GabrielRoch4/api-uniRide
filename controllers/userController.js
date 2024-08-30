@@ -66,12 +66,27 @@ export const createUser = async (req, res) => {
     Numero, 
     Complemento,
     Estado, 
-    Cidade 
+    Cidade,
+    Role // Adicionado
   } = req.body;
 
   try {
+    // Hash da senha
     const hashedPassword = await bcrypt.hash(Senha, 10);
 
+    // Determinar o Role com base no Role do usuário autenticado
+    let userRole = 'user';
+    if (req.userId) { // Usuário autenticado
+      const currentUser = await prisma.user.findUnique({
+        where: { Id: req.userId },
+      });
+
+      if (currentUser && currentUser.Role === 'admin' && Role) {
+        userRole = Role; // Permite definir o Role do novo usuário apenas se o criador for admin
+      }
+    }
+
+    // Criação do usuário
     const newUser = await prisma.user.create({
       data: {
         Nome,
@@ -88,9 +103,11 @@ export const createUser = async (req, res) => {
         Numero, 
         Complemento,
         Estado, 
-        Cidade 
+        Cidade,
+        Role: userRole, // Definindo o Role
       },
     });
+
     return res.status(201).json({
       statusCode: 201,
       message: "Usuário criado com sucesso!"
