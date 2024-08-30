@@ -1,52 +1,82 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import * as dotenv from "dotenv";
 
-import * as dotenv from "dotenv"
+dotenv.config();
 
-dotenv.config()
+const SECRET = process.env.SECRET;
+const prisma = new PrismaClient();
 
-const SECRET = process.env.SECRET
-
-const login = (req, res) => {
+const login = async (req, res) => {
     try {
-        
-        PrismaClient.user.findOne({Email: req.body.Email}, (error, User) => {
-            if(!User) return res.status(401).json({
-                statusCode: 401,
-                message: "Usuário não encontrado!",
-                data: {
-                    email: req.body.Email
-                }
-            })
-
-            const PasswordValidation = bcrypt.compareSync(req.body.Password, User.Password)
-
-            if(!PasswordValidation) return res.status(401).json({
-                statusCode: 401,
-                message: "Não autorizado!"
-            })
-
-            const token = jwt.sign({Nome: User.Nome}, SECRET)
-
-            res.status(200).json({
-                statusCode: 200,
-                message: "login realizado com sucesso!",
-                data: {
-                    token
-                }
-            })
-        })
-
+      const { Email, Password } = req.body;
+  
+      const user = await prisma.user.findUnique({
+        where: { Email }
+      });
+  
+      if (!user) {
+        return res.status(401).json({
+          statusCode: 401,
+          message: "Usuário não encontrado!",
+          data: {
+            email: Email
+          }
+        });
+      }
+  
+      const passwordValidation = await bcrypt.compare(Password, user.Senha);
+  
+      if (!passwordValidation) {
+        return res.status(401).json({
+          statusCode: 401,
+          message: "Não autorizado!"
+        });
+      }
+  
+      const token = jwt.sign({ Nome: user.Nome }, SECRET, { expiresIn: '1h' });
+  
+      res.status(200).json({
+        statusCode: 200,
+        message: "Login realizado com sucesso!",
+        data: {
+          token
+        }
+      });
     } catch (error) {
-        console.error(error)
-        res.status(500).json({
-            statusCode: 500,
-            message: error.message
-        })
+      console.error("Erro ao realizar login:", error);
+      res.status(500).json({
+        statusCode: 500,
+        message: error.message
+      });
     }
-}
+  };  
+
+const verifyToken = (req, res, next) => {
+    const tokenHeader = req.headers["authorization"];
+    const token = tokenHeader && tokenHeader.split(" ")[1]; // Corrigir para pegar o token após o espaço
+
+    if (!token) {
+        return res.status(401).json({
+            statusCode: 401,
+            message: "Não autorizado!"
+        });
+    }
+
+    try {
+        jwt.verify(token, SECRET);
+        next();
+    } catch (error) {
+        console.error("Erro ao verificar token:", error);
+        res.status(401).json({
+            statusCode: 401,
+            message: "Token não válido!"
+        });
+    }
+};
 
 export default {
-    login
-}
+  login,
+  verifyToken
+};
