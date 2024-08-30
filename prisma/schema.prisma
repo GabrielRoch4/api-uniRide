@@ -34,5 +34,18 @@ model User {
   Cidade String
   Role String @default("user")
 
+  Rides Ride[]
+
   @@map ("users")
+}
+
+model Ride {
+  Id String @id @default(uuid())
+  UserId String
+  Origem String
+  Destino String
+
+  User User @relation(fields: [UserId], references: [Id])
+
+  @@map ("rides")
 }

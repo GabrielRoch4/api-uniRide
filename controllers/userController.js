@@ -49,7 +49,6 @@ export const getByUserId = async (req, res) => {
   }
 };
 
-
 export const createUser = async (req, res) => {
   const {
     Nome,
