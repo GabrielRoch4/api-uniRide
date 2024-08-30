@@ -83,16 +83,16 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-
-  const verifyAdmin = (req, res, next) => {
-    if (req.userRole !== "admin") {
-        return res.status(403).json({
-            statusCode: 403,
-            message: "Acesso negado! Somente administradores podem realizar esta operação."
-        });
-    }
-    next();
+const verifyAdmin = (req, res, next) => {
+  if (req.userRole !== "admin") {
+    return res.status(403).json({
+      statusCode: 403,
+      message: "Acesso negado! Somente administradores podem realizar esta operação."
+    });
+  }
+  next();
 };
+
 
 export default {
   login,

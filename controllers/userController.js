@@ -202,7 +202,7 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     // Verifica se o ID do usuário autenticado corresponde ao ID do usuário solicitado
-    if (req.userId !== req.params.id) {
+    if (req.userId !== req.params.id && req.userRole !== 'admin') {
       return res.status(403).json({
         statusCode: 403,
         message: "Você não tem permissão para deletar este usuário!"
@@ -210,7 +210,7 @@ export const deleteUser = async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { Id: req.params.id },  
+      where: { Id: req.params.id },
     });
 
     if (!user) {
@@ -226,10 +226,13 @@ export const deleteUser = async (req, res) => {
 
     return res.status(200).json({
       statusCode: 200,
-      message:"Usuário deletado com sucesso!"
+      message: "Usuário deletado com sucesso!"
     });
   } catch (error) {
-    return res.status(500).json(error.message);
+    return res.status(500).json({
+      statusCode: 500,
+      message: error.message
+    });
   }
 };
 
