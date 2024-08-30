@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from "bcrypt"
 
 const prisma = new PrismaClient();
 
@@ -6,9 +7,15 @@ export const getAllUsers = async (_, res) => {
   try {
     const users = await prisma.user.findMany();
 
-    if (users.length === 0) return res.status(404).json("Não há usuários cadastrados!");
+    if (users.length === 0) return res.status(404).json({
+      statusCode: 404,  
+      message: "Não há usuários cadastrados!"
+    });
 
-    return res.status(200).json(users);
+    return res.status(200).json({
+      statusCode: 200,
+      users
+    });
   } catch (error) {
     return res.status(500).json(error.message);
   }
@@ -20,9 +27,15 @@ export const getByUserId = async (req, res) => {
       where: { Id: req.params.id },
     });
 
-    if (!user) return res.status(404).json("Usuário não encontrado!");
+    if (!user) return res.status(404).json({
+      statusCode: 404,
+      message: "Usuário não encontrado!"
+    });
 
-    return res.status(200).json(user);
+    return res.status(200).json({
+      statusCode: 200,
+      user
+    });
   } catch (error) {
     return res.status(500).json(error.message);
   }
@@ -48,6 +61,8 @@ export const createUser = async (req, res) => {
   } = req.body;
 
   try {
+    const hashedPassword = await bcrypt.hash(Senha, 10);
+
     const newUser = await prisma.user.create({
       data: {
         Nome,
@@ -56,7 +71,7 @@ export const createUser = async (req, res) => {
         Telefone,
         Genero,
         Email,
-        Senha,
+        Senha: hashedPassword,
         DataNasc, 
         CEP, 
         Logradouro, 
@@ -67,7 +82,10 @@ export const createUser = async (req, res) => {
         Cidade 
       },
     });
-    return res.status(201).json("Usuário criado com sucesso!");
+    return res.status(201).json({
+      statusCode: 201,
+      message: "Usuário criado com sucesso!"
+    });
   } catch (error) {
     return res.status(500).json(error.message);
   }
@@ -98,34 +116,48 @@ export const updateUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json("Usuário não encontrado!");
+      return res.status(404).json({
+        statusCode: 404,
+        message: "Usuário não encontrado!"
+      });
+    }
+
+    // Verifica se a senha foi fornecida e criptografa-a
+    const updateData = {
+      Nome,
+      Sobrenome, 
+      CPF,
+      Telefone,
+      Genero,
+      Email,
+      DataNasc, 
+      CEP, 
+      Logradouro, 
+      Bairro, 
+      Numero, 
+      Complemento,
+      Estado, 
+      Cidade 
+    };
+
+    if (Senha) {
+      updateData.Senha = await bcrypt.hash(Senha, 10);
     }
 
     await prisma.user.update({
       where: { Id: req.params.id },
-      data: {
-        Nome,
-        Sobrenome, 
-        CPF,
-        Telefone,
-        Genero,
-        Email,
-        Senha,
-        DataNasc, 
-        CEP, 
-        Logradouro, 
-        Bairro, 
-        Numero, 
-        Complemento,
-        Estado, 
-        Cidade 
-      },
+      data: updateData,
     });
-    return res.status(200).json("Usuário atualizado com sucesso!");
+
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Usuário atualizado com sucesso!"
+    });
   } catch (error) {
     return res.status(500).json(error.message);
   }
 };
+
 
 export const deleteUser = async (req, res) => {
   try {
@@ -134,14 +166,20 @@ export const deleteUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json("Usuário não encontrado!");
+      return res.status(404).json({
+        statusCode: 404,
+        message: "Usuário não encontrado!"
+      });
     }
 
     await prisma.user.delete({
       where: { Id: req.params.id },
     });
 
-    return res.status(200).json("Usuário deletado com sucesso!");
+    return res.status(200).json({
+      statusCode: 200,
+      message:"Usuário deletado com sucesso!"
+    });
   } catch (error) {
     return res.status(500).json(error.message);
   }

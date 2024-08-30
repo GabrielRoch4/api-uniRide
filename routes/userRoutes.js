@@ -1,7 +1,10 @@
 import express from "express";
 import { createUser, getAllUsers, updateUser, deleteUser, getByUserId } from "../controllers/userController.js";
+// import authController from "../controllers/authController.js";
 
 const userRoutes = express.Router();
+
+// userRoutes.post("/login", authController.login)
 
 userRoutes.get("/users", getAllUsers);
 userRoutes.get("/users/:id", getByUserId);
