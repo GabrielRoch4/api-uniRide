@@ -35,7 +35,7 @@ const login = async (req, res) => {
         });
       }
   
-      const token = jwt.sign({ Nome: user.Nome }, SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user.Id, Nome: user.Nome }, SECRET, { expiresIn: '1h' });
   
       res.status(200).json({
         statusCode: 200,
@@ -53,9 +53,9 @@ const login = async (req, res) => {
     }
   };  
 
-const verifyToken = (req, res, next) => {
+  const verifyToken = (req, res, next) => {
     const tokenHeader = req.headers["authorization"];
-    const token = tokenHeader && tokenHeader.split(" ")[1]; // Corrigir para pegar o token após o espaço
+    const token = tokenHeader && tokenHeader.split(" ")[1];
 
     if (!token) {
         return res.status(401).json({
@@ -65,7 +65,8 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
-        jwt.verify(token, SECRET);
+        const decoded = jwt.verify(token, SECRET);
+        req.userId = decoded.userId; // Armazena o ID do usuário decodificado no request
         next();
     } catch (error) {
         console.error("Erro ao verificar token:", error);
@@ -75,6 +76,7 @@ const verifyToken = (req, res, next) => {
         });
     }
 };
+
 
 export default {
   login,

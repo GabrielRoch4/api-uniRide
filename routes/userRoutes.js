@@ -7,10 +7,10 @@ const userRoutes = express.Router();
 userRoutes.post("/login", authController.login)
 
 userRoutes.get("/users", getAllUsers);
-userRoutes.get("/users/:id", getByUserId);
+userRoutes.get("/users/:id", authController.verifyToken, getByUserId);
 userRoutes.post("/users/create", createUser);
-userRoutes.put("/users/update/:id", updateUser);
-userRoutes.delete("/users/delete/:id", deleteUser);
+userRoutes.put("/users/update/:id", authController.verifyToken, updateUser);
+userRoutes.delete("/users/delete/:id", authController.verifyToken, deleteUser);
 
 // userRoutes.post("/rota-autenticada", authController.verifyToken, rotaAutenticada);
 

@@ -23,6 +23,14 @@ export const getAllUsers = async (_, res) => {
 
 export const getByUserId = async (req, res) => {
   try {
+    // Verifica se o ID do usuário autenticado corresponde ao ID do usuário solicitado
+    if (req.userId !== req.params.id) {
+      return res.status(403).json({
+        statusCode: 403,
+        message: "Você não tem permissão para acessar essas informações!"
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { Id: req.params.id },
     });
@@ -40,6 +48,7 @@ export const getByUserId = async (req, res) => {
     return res.status(500).json(error.message);
   }
 };
+
 
 export const createUser = async (req, res) => {
   const {
@@ -92,6 +101,14 @@ export const createUser = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
+  // Verifica se o ID do usuário autenticado corresponde ao ID do usuário solicitado
+  if (req.userId !== req.params.id) {
+    return res.status(403).json({
+      statusCode: 403,
+      message: "Você não tem permissão para atualizar este usuário!"
+    });
+  }
+
   const {
     Nome,
     Sobrenome, 
@@ -168,6 +185,14 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
+    // Verifica se o ID do usuário autenticado corresponde ao ID do usuário solicitado
+    if (req.userId !== req.params.id) {
+      return res.status(403).json({
+        statusCode: 403,
+        message: "Você não tem permissão para deletar este usuário!"
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { Id: req.params.id },  
     });
@@ -191,6 +216,7 @@ export const deleteUser = async (req, res) => {
     return res.status(500).json(error.message);
   }
 };
+
 
 export const rotaAutenticada = async (req, res) => {
   res.status(200).json({
