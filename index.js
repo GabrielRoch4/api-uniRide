@@ -6,8 +6,9 @@ import router from "./routes/router.js";
 const app = express();
 
 app.use(express.json());
+
 app.use(cors({
-  origin: '*', // Substitua pelo seu domínio
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
